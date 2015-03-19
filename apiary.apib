@@ -1,0 +1,1195 @@
+FORMAT: X-1A
+
+Host: elmst.fovea.cc
+
+#ELM Sports Town API Documentation
+The API is based on REST principles. You must be authenticated and call HTTPs requests on the URLs listed below. 
+This documentation covers the core resources you can used to manipulate objects on the platform. Review the information basic instructions if you are new to APIs.
+
+##Allowed HTTPs requests:
+
+- `POST` - Creates or updates a resource
+- `PUT` - Updates a resource
+- `GET` - Retrieves a resource or list of resources
+- `DELETE` - Delete a resource
+
+##Typical Server Responses
+
+- 200 `OK` - The request was successful (some API calls may return 201 instead).
+- 201 `Created` - The request was successful and a resource was created.
+- 204 `No Content` - The request was successful but there is no representation to return (that is, the response is empty).
+- 400 `Bad Request` - The request could not be understood or was missing required parameters.
+- 401 `Unauthorized` - Authentication failed or user does not have permissions for the requested operation.
+- 403 `Forbidden` - Access denied.
+- 404 `Not Found` - Resource was not found.
+- 405 `Method Not Allowed` - Requested method is not supported for the specified resource.
+- 503 `Service Unavailable` - The service is temporary unavailable (e.g. scheduled Platform Maintenance). Try again later.
+
+# Group Platform Availability 
+<a id="available" ></a>
+
+If the platform is in scheduled maintenance, REST API Returns a **503** error code and following message is displayed in the response body:
+
+`Scheduled maintenance in progress. Please try again later.`
+
+Otherwise it will return 503 with a descriptive error message. Specific errors messages are listed with individual APIs. You can use **/elmst/ping** resource to check the Platform availability.
+
+## /elmst/ping
+### GET
+Checks Platform availability.
+
++ Request
+
+    + Headers
+
+            Accept: application/json
+
+
++ Response 204
+
++ Response 503
+
+    + Body 
+    
+            Scheduled maintenance in progress. Please try again later.  
+    
++ Response 503
+
+    + Headers
+    
+            Content-Type: application/json
+        
+    + Body 
+    
+            {"error":{
+                "message": "Internal server error. Please fill in bug report with request_id='{error-id}'"
+            }}
+
+
+# Group Log In 
+<a id="login" ></a>
+
+Authentication uses long-lived tokens to track user sessions, which you obtain when you call `/elmst/account/login` 
+
+**Steps:**
+
+1. `POST` your credentials to the login resource. The token is returned in the SetCookie header.
+2. Include this token in a -cookie header on all API calls.
+
+>**Note:** The token has limited validity. If you received a 401 Unauthorized Response, Login to get a new one.
+
+## /elmst/login
+### Log in [POST]
+
++ Request (application/json)
+    + Headers
+
+            Accept: application/json
+
+    + Body
+
+            {
+                "postUserLogin":{
+                    "login":"user@company.com",
+                    "password":"YourPassword",
+                    "remember":1
+                }
+            }
+
++ Response 200 (application/json)
+    + Headers
+
+            Set-Cookie: ELMAuth=; path=/elmst; expires=Mon, 30-Jul-2012 09:12:42 GMT; secure; HttpOnly, ELMAuthSST={super-secured-token}; path=/elmst/account; secure; HttpOnly
+
+    + Body
+
+            {
+                "id": 10345
+            }
+
+## /elmst/loginfb
+### Log in using Facebook [POST]
+
++ Request (application/json)
+    + Headers
+
+            Accept: application/json
+
+    + Body
+
+            {
+                "postUserLogin":{
+                    "facebookID":"17834724784",
+                    "accessToken":"kgkh3g42kh4g23kh4g2kh34g2kg4k2h4gkh3g4k2h4gk23h4gk2h34gk234gk2h34AndSoOn",
+                    "remember":1
+                }
+            }
+
++ Response 200 (application/json)
+    + Headers
+
+            Set-Cookie: ELMAuth=; path=/elmst; expires=Mon, 30-Jul-2012 09:12:42 GMT; secure; HttpOnly, ELMAuthSST={super-secured-token}; path=/elmst/account; secure; HttpOnly
+
+    + Body
+
+            {
+                "id": 10345
+            }
+
+## /elmst/login/{id}
+### Logout [DELETE]
+
++ Request 
+    + Headers
+
+            Accept: application/json
+
++ Response 200 
+
+#Group User Profile
+# Users Collection [/elmst/users]
+### Create a User [POST]
+
+Register a user, send his password by email (except if facebookId is provided).
+
++ Request (application/json)
+
+        {
+            "email": "joe@example.com",
+            "facebookId": 123456789,
+            "firstname": "Souad",
+            "lastname": "Merhebi",
+            "birthdate": "1980-08-20",
+            "gender": "female",
+            "phoneCode": "+961",
+            "phone": "70707070",
+            "shoe-size": "43",
+            "clothes-size": "L",
+            "interests": [{
+                "id": "basketball",
+                "title": "Basketball"
+                },
+                {
+                "id": "football",
+                "title": "Football"
+            }],
+            "addresses": [{
+                "name": "Dbayeh",
+                "full": "ABC Street, Karam Building, 7th floor"
+            }, {
+                "name": "Cairo",
+                "full": "XYZ St. Nagi Building, 1st floor"
+            }]
+        }
+
++ Response 200 (application/json)
+
+    + Headers
+
+            Set-Cookie: ELMAuth=; path=/elmst; expires=Mon, 30-Jul-2012 09:12:42 GMT; secure; HttpOnly, ELMAuthSST={super-secured-token}; path=/elmst/account; secure; HttpOnly
+
+    + Body
+
+            {
+                "id" :10345
+            }
+
+## User [/elmst/users/{id}]
+
++ Parameters
+    + id (string) ... ID of the User.
+
+### Edit a User [PUT]
+
++ Request (application/json)
+
+        {
+            "id": 10345,
+            "email": "joe@example.com",
+            "facebookId": 123456789,
+            "firstname": "Souad",
+            "lastname": "Merhebi",
+            "birthdate": "August 20, 1980",
+            "gender": "female",
+            "phoneCode": "+961",
+            "phone": "70707070",
+            "shoe-size": "38",
+            "clothes-size": "L",
+            "interests": [{
+                "id": "basketball",
+                "title": "Basketball"
+                },
+                {
+                "id": "football",
+                "title": "Football"
+            }],
+            "addresses": [{
+                "name": "Dbayeh",
+                "full": "ABC Street, Karam Building, 7th floor"
+            }]
+        }
+
++ Response 200 (application/json)
+
+### Retrieve a User [GET]
++ Response 200 (application/json)
+
+    + Header
+
+            X-My-Header: The Value
+
+    + Body
+
+            {
+                "id": 10345,
+                "email": "joe@example.com",
+                "facebookId": 123456789,
+                "firstname": "Souad",
+                "lastname": "Merhebi",
+                "birthdate": "August 20, 1980",
+                "gender": "female",
+                "phoneCode": "+961",
+                "phone": "707070",
+                "shoe-size": "38",
+                "clothes-size": "L",
+                "interests": [{
+                    "id": "basketball",
+                    "title": "Basketball"
+                    },
+                    {
+                    "id": "football",
+                    "title": "Football"
+                }],
+                "addresses": [{
+                    "name": "Dbayeh",
+                    "full": "ABC Street, Karam Building, 7th floor"
+                }]
+            }
+
+## /elmst/users/{id}/order
+### Make an Order [POST]
+
+        {
+            "countryId": "lb",
+            "deliveryAddress":  {
+                "name": "Dbayeh",
+                "full": "ABC Street, Karam Building, 7th floor"
+            },
+            "basket": [{
+                "itemId": 1,
+                "colorId": "black",
+                "sizeId": "38",
+                "exclVatPrice": 100,
+                "vatPrice": 10,
+                "inclVatPrice": 110,
+                "quantity": 2
+            },
+            {
+                "itemId": 2,
+                "colorId": "white",
+                "sizeId": "38",
+                "exclVatPrice": 200,
+                "vatPrice": 20,
+                "inclVatPrice": 220,
+                "quantity": 1
+            }]
+        }
+
++ Response 200 (application/json)
+
+        {
+            "id": 999,
+            "paymentURL": "https://sportstown.com.lb/234554455244",
+            "successURL": "https://sportstown.com.lb/success",
+            "failureURL": "https://sportstown.com.lb/failure"
+        }
+
++ Response 400 (application/json)
+
+        {
+            "code": "invalidBasket",
+            "message": "There is something wrong"
+        }
+            
+## /elmst/emailWithPassword
+### Send an email with user's password [POST]
+
++ Parameters
+    + email (required, string) ... email address
+
++ Request (application/json)
+    + Headers
+
+            Accept: application/json
+
+    + Body
+
+            {
+                "email": "example@gmail.com"
+            }
+
++ Response 200 (application/json)
+
+    + Body
+
+            {
+                "ok": true
+            }
+
++ Response 404 (application/json)
+
+    + Body
+
+            {
+                "ok": false,
+                "message": "email not found"
+            }
+            
+#Group Share
+## Share [/elmst/share]
+### Send what user is sharing [POST]
++ Parameters
+    + userId (if available, int) ... ID of user if is logged in
+    + date (required, string) ... date of sharing
+    + social-media (required, string) ... Facebook or Twitter
+    + country (required, string) ... country code of the user
+    + itemId (required, int) ... ID of the item 
+
++ Request (application/json)
+    + Headers
+
+            Accept: application/json
+
+    + Body
+
+            {
+                "userId": 1,
+                "date": "10/02/2015",
+                "social-media": "Facebook",
+                "country": "lb",
+                "itemId": 2
+            }
+
++ Response 200 (application/json)
+
+    + Body
+
+            {
+                "ok": true
+            }
+
++ Response 404 (application/json)
+
+    + Body
+
+            {
+                "ok": false,
+                "message": "itemId not found"
+            }
+
+#Group Calendar
+## /elmst/{itemId}/add-to-calendar
+### send what user have chosed to add to calendar [POST]
++ Parameters
+    + userId (optional, int) ... ID of user if is logged in
+    + date (required, string) ... date of calendar event
+    + facebookId (optional, string) ... Facebookid of the user
+    
++ Request (application/json)
+    + Headers
+
+            Accept: application/json
+
+    + Body
+
+            {
+                "facebookID": "17834724784",
+                "userId": 32323,
+                "date": "24/01/2015 14:00:23"
+            }
+
++ Response 200 (application/json)
+    + Headers
+
+            Set-Cookie: ELMAuth=; path=/elmst; expires=Mon, 30-Jul-2012 09:12:42 GMT; secure; HttpOnly, ELMAuthSST={super-secured-token}; path=/elmst/account; secure; HttpOnly
+
+    + Body
+
+            {
+                "success": true
+            }
+        
+#Group Countries
+## Countries Collection [/elmst/countries]
+### List all Countries [GET]
++ Response 200 (application/json)
+
+        [{
+            "name": "Lebanon", "code": "lb", "phoneCode": "+961"
+        }, {
+            "name": "Jordan", "code": "jo", "phoneCode": "+962"
+        }, {
+            "name": "Egypt", "code": "eg", "phoneCode": "+40"
+        }]
+        
+#Group Interests
+## Interests Collection [/elmst/interests]
+### List all Countries [GET]
++ Response 200 (application/json)
+        
+        [{
+          "id": "basketball",
+          "title": "basketball"
+        },
+        {
+          "id": "football",
+          "title": "Football"
+        },
+        {
+          "id": "tennis",
+          "title": "Tennis"
+        },
+        {
+          "id": "swimming",
+          "title": "Swimming"
+        },
+        {
+          "id": "hiking",
+          "title": "Hiking"
+        },
+        {
+          "id": "surfing",
+          "title": "Surfing"
+        },
+        {
+          "id": "planes",
+          "title": "Planes"
+        }]
+
+#Group Availabilty and Interest
+## Availability Collection [/elmst/availabilities]
+### List all Availabilities [GET]
++ Request (application/json)
+
+        { "changedSince": "2014-10-10T10:00:00+02:00" }
+
++ Response 200 (application/json)
+
+        [{
+            "itemId": "62300C22-6D4F-45AF-89EE-47104094DFA7", "changed": "2014-12-09T11:41:07+02:00", "availabilityDate": "2014-12-25T10:00:00+02:00"
+        }, {
+            "itemId": "1AEAD266-07C6-4BD6-B7CD-1CE199A646CF", "changed": "2014-12-09T18:48:02+02:00", "availabilityDate": "2014-12-25T10:00:00+02:00"
+        }]
+
+## Interest Collection [/elmst/interests/:itemId]
+
++ Parameters
+    + itemId (string) ... ID of the Item.
+
+### List all Interests [GET]
+
++ Request (application/json)
++ Response 200 (application/json)
+
+        [{
+            "userId": 10345
+        }, {
+            "userId": 10046
+        }]
+
+### Register interest [POST]
+
++ Request (application/json)
+
+        {
+            "userId": 10221
+        }
+        
++ Response 200
+
+### Unregister interest [DELETE]
+
++ Request (application/json)
+
+        {
+            "userId": 10221
+        }
+        
++ Response 204
+
+#Group Favorites
+## Favorites Collection [/elmst/users/{id}/favorites/page/{page}]
+### List all Favorites [GET]
+
++ Request (application/json)
++ Response 200 (application/json)
+
+        [{
+            "id": 1,
+            "name": "Nike Pro",
+            "price": 100,
+            "pictureURL": "http://www.freshcoloring.com/wp-content/uploads/yapb_cache/shoe.d5e0hxoyhp4co00c4s0k4w0s4.91yyvwac750kkk8wk8gg8csco.th.jpeg"
+        },{
+            "id": 2,
+            "name": "Nike Air",
+            "price": 110,
+            "pictureURL": "http://images.eastbay.com/pi/09048092/large/nike-air-max-95-mens"
+        }]
+
+## Favorites Collection [/elmst/users/{id}/favorites]
+### Add to Favorites [POST]
+
++ Request (application/json)
+
+        {
+            "itemId": 2
+        }
++ Response 200 (application/json)
+
+## Favorite Item [/elmst/users/{id}/favorites/{itemId}]
+### Remove from Favorites [DELETE]
+
++ Response 204
+
+#Group News
+## News Collection [/elmst/country/{country}/news]
+
++ Parameters
+    + country (string) ... Country code of new news to retrieve.
+
+### List all News [GET]
+
++ Request (application/json)
+
++ Response 200 (application/json)
+
+        [{
+            "id": 1, "title": "New Nike model", "contentHTML": "content in HTML"
+        }, {
+            "id": 2, "title": "Converse goes wild", "contentHTML": "content in HTML"
+        }]
+
+## News [/elmst/country/{country}/news/{id}]
++ Parameters
+    + country (string) ... Country code of new news to retrieve.
+    + id (string) ... ID of the news item
+
+### Retieve a News [GET]
+
++ Request (application/json)
+
++ Response 200 (application/json)
+
+        {
+            "id": 1, "title": "New Nike model", "contentHTML": "content in HTML"
+        }
+
+#Group Stores
+## Stores Collection [/elmst/country/{code}/stores]
+
++ Parameters
+    + country (string) ... Country code of new news to retrieve.
+
+### List all Stores [GET]
+
++ Request (application/json)
+
++ Response 200 (application/json)
+
+        [{
+            "id": 1, "name": "Dbayeh", "lat": 33.871271, "lon": 35.512619
+        }, {
+            "id": 2, "name": "Hamra", "lat": 33.661271, "lon": 35.462619
+        }, {
+            "id": 3, "name": "Sin El fil", "lat": 33.423171, "lon": 35.283839
+        }, {
+            "id": 4, "name": "Mansourieh", "lat": 33.872301, "lon": 35.682619
+        }, {
+            "id": 5, "name": "Dekweneh", "lat": 33.876821, "lon": 35.952619
+        }, {
+            "id": 6, "name": "Jnah", "lat": 33.823871, "lon": 35.198619
+        }]
+
+## Stores having an item [/elmst/country/:code/stores-having/:itemid]
+
++ Parameters
+    + country (string) ... Country code of new news to retrieve.
+    + itemid (string) ... ID of the item to find
+
+### List [GET] 
+
++ Request (application/json)
+
++ Response 200 (application/json)
+
+        [{
+            "id": 1, "name": "Dbayeh", "lat": 33.871271, "lon": 35.512619
+        }, {
+            "id": 2, "name": "Mansourieh", "lat": 33.871271, "lon": 35.512619
+        }]
+
+## Store [/elmst/country/{code}/stores/{id}]
++ Parameters
+    + country (string) ... Country code of stores to retrieve.
+    + id (string) ... ID of the store
+
+### Retieve a Store [GET]
+
++ Request (application/json)
+
++ Response 200 (application/json)
+
+        {
+            "id": 1,
+            "name": "Dbayeh",
+            "address": "Mount Lebanon, northern metn, dbayeh highway",
+            "lat": 33.871271,
+            "lon": 35.512619,
+            "phones": [
+                {"phoneNumber": "+9611565656"},
+                {"phoneNumber": "+9611565657"}
+            ],
+            "schedule": "Open from monday to sunday from 9:00am till 12:00pm"
+        }
+        
+#Group Items
+## Items Collection [/elmst/country/{country}/items/page/{page}]
++ Parameters
+    + country (string) ... Country code of new news to retrieve.
+    + page (number) ... Page number
+
+### List Items [GET]
++ Request (application/json)
++ Response 200 (application/json)
+
+        [{
+            "id": 2,
+            "name": "Nike Air",
+            "description": "Very comfortable shoes",
+            "price": 110,
+            "pictureURL": "http://images.eastbay.com/pi/09048092/large/nike-air-max-95-mens"
+        }, {
+            "id": 3,
+            "name": "Converse 12",
+            "description": "Very comfortable shoes",
+            "price": 220,
+            "pictureURL": "http://images.champssports.com/pi/42249001/large/nike-air-extreme-volley-womens"
+        }]
+
+## Newest Items [/elmst/country/{country}/items/newest/page/{page}]
+### List Newest Items [GET]
++ Request (application/json)
++ Response 200 (application/json)
+
+        [{
+            "id": 2,
+            "name": "Nike Air",
+            "price": 110,
+            "pictureURL": "http://images.eastbay.com/pi/09048092/large/nike-air-max-95-mens"
+        }]
+
+## Upcoming Items [/elmst/country/{country}/items/upcoming/page/{page}]
+### List Upcoming Items [GET]
++ Request (application/json)
++ Response 200 (application/json)
+
+        [{
+            "id": 1,
+            "name": "Nike Pro",
+            "description": "Very comfortable shoes",
+            "price": 100,
+            "pictureURL": "http://www.freshcoloring.com/wp-content/uploads/yapb_cache/shoe.d5e0hxoyhp4co00c4s0k4w0s4.91yyvwac750kkk8wk8gg8csco.th.jpeg"
+        },{
+            "id": 2,
+            "name": "Nike Air",
+            "description": "Very comfortable shoes",
+            "price": 110,
+            "pictureURL": "http://images.eastbay.com/pi/09048092/large/nike-air-max-95-mens"
+        }, {
+            "id": 3,
+            "name": "Converse 12",
+            "description": "Very comfortable shoes",
+            "price": 220,
+            "pictureURL": "http://images.champssports.com/pi/42249001/large/nike-air-extreme-volley-womens"
+        }]
+
+## Hottest Items [/elmst/country/{country}/items/hottest/page/1]
+### List Hottest Items [GET]
++ Request (application/json)
++ Response 200 (application/json)
+
+        [{
+            "id": 1,
+            "name": "Nike Pro",
+            "description": "Very comfortable shoes",
+            "price": 100,
+            "pictureURL": "http://www.freshcoloring.com/wp-content/uploads/yapb_cache/shoe.d5e0hxoyhp4co00c4s0k4w0s4.91yyvwac750kkk8wk8gg8csco.th.jpeg"
+        },
+        {
+            "id": 2,
+            "name": "Nike Air",
+            "price": 110,
+            "pictureURL": "http://images.eastbay.com/pi/09048092/large/nike-air-max-95-mens"
+        },
+        {
+            "id": 3,
+            "name": "Converse 12",
+            "description": "Very comfortable shoes",
+            "price": 220,
+            "pictureURL": "http://images.champssports.com/pi/42249001/large/nike-air-extreme-volley-womens"
+        }]
+        
+## Hottest Items [/elmst/country/{country}/items/hottest/page/2]
+### List Hottest Items [GET]
++ Request (application/json)
++ Response 200 (application/json)
+
+         [{
+            "id": 4,
+            "name": "Nike 12",
+            "description": "Very comfortable shoes",
+            "price": 200,
+            "pictureURL": "http://www.fieggen.com/Dont_Link/BoatShoeKnot2.jpg"
+        },
+        {
+            "id": 5,
+            "name": "Nike 12",
+            "description": "Very comfortable shoes",
+            "price": 200,
+            "pictureURL": "http://inwayshoes.com/wp-content/uploads/leather-school-shoes.jpg"
+        },
+        {
+            "id": 6,
+            "name": "Nike 12",
+            "description": "Very comfortable shoes",
+            "price": 200,
+            "pictureURL": "http://www.clownantics.com/images/catalog/category11.jpg"
+        }]
+
+## Hottest Items [/elmst/country/{country}/items/hottest/page/3]
+### List Hottest Items [GET]
++ Request (application/json)
++ Response 200 (application/json)
+
+        [{
+            "id": 7,
+            "name": "Converse 12",
+            "description": "Very comfortable shoes",
+            "price": 1,
+            "pictureURL": "http://images.champssports.com/pi/42249001/large/nike-air-extreme-volley-womens"
+        },
+        {
+            "id": 8,
+            "name": "Converse 12",
+            "description": "Very comfortable shoes",
+            "price": 2,
+            "pictureURL": "http://images.champssports.com/pi/42249001/large/nike-air-extreme-volley-womens"
+        },
+        {
+            "id": 9,
+            "name": "Converse 12",
+            "description": "Very comfortable shoes",
+            "price": 3,
+            "pictureURL": "http://images.champssports.com/pi/42249001/large/nike-air-extreme-volley-womens"
+        }]
+        
+## Hottest Items [/elmst/country/{country}/items/hottest/page/4]
+### List Hottest Items [GET]
++ Request (application/json)
++ Response 204 (application/json)
+        
+## Single Item [/elmst/items/2]
++ Parameters
+    + id (string) ... ID of the item
+
+### Retrieve an Item [GET]
++ Request (application/json)
++ Response 200 (application/json)
+
+        {
+            "id": 2,
+            "name": "Nike Air",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vehicula vitae libero a semper. Sed non sapien sem. Integer pretium, orci vitae commodo porttitor, nisi erat iaculis felis, ut efficitur felis nulla eu magna.",
+            "exclVatPrice": 100,
+            "vat": 10,
+            "vatPrice": 110,
+            "colors": [{
+                "colorId": "1",
+                "colorDesc": "White",
+                "pictures": [
+                    {
+                    "picURL": "http://www.highsnobiety.com/news/wp-content/uploads/2009/01/nike-apc-all-court-shoe-3.jpg"
+                    },
+                    {
+                    "picURL": "http://www.highsnobiety.com/news/wp-content/uploads/2009/01/nike-apc-all-court-shoe-1.jpg"
+                    }
+                ],
+                "sizes": [
+                    {
+                        "sizeId": "38",
+                        "sizeDesc": "38"
+                    },
+                    {
+                        "sizeId": "39",
+                        "sizeDesc": "39"
+                    },
+                    {
+                        "sizeId": "40",
+                        "sizeDesc": "40"
+                    },
+                    {
+                        "sizeId": "41",
+                        "sizeDesc": "41"
+                    }
+                ]
+            },
+            {
+                "colorId": "2",
+                "colorDesc": "Blue",
+                "pictures": [
+                    {
+                    "picURL": "http://www.2015shoesonline.com/images/2015_New_Deals_Discounts/Nike_Casual_Shoes_Mens/Nike_Roshe_Mens_Running_Shoes/2013_Design_Nike_Mens_Roshe_Running_Shoes_Wool_Skin_Blue_Cheap_Sale_ID4520.jpg"
+                    }
+                ],
+                "sizes": [
+                    {
+                        "sizeId": "40",
+                        "sizeDesc": "40"
+                    },
+                    {
+                        "sizeId": "41",
+                        "sizeDesc": "41"
+                    }
+                ]
+            }]
+        }
+        
+## Single Item [/elmst/items/3]
++ Parameters
+    + id (string) ... ID of the item
+
+### Retrieve an Item [GET]
++ Request (application/json)
++ Response 200 (application/json)
+
+        {
+            "id": 3,
+            "name": "Converse 12",
+            "description": "Very comfortable shoes",
+            "exclVatPrice": 100,
+            "vat": 10,
+            "vatPrice": 110,
+            "colors": [{
+                "colorId": "1",
+                "colorDesc": "White",
+                "pictures": [
+                ],
+                "sizes": [
+                    {
+                        "sizeId": "38",
+                        "sizeDesc": "38"
+                    },
+                    {
+                        "sizeId": "39",
+                        "sizeDesc": "39"
+                    },
+                    {
+                        "sizeId": "40",
+                        "sizeDesc": "40"
+                    },
+                    {
+                        "sizeId": "41",
+                        "sizeDesc": "41"
+                    }
+                ]
+            },
+            {
+                "colorId": "2",
+                "colorDesc": "Blue",
+                "pictures": [
+                    {
+                    "picURL": "http://www.2015shoesonline.com/images/2015_New_Deals_Discounts/Nike_Casual_Shoes_Mens/Nike_Roshe_Mens_Running_Shoes/2013_Design_Nike_Mens_Roshe_Running_Shoes_Wool_Skin_Blue_Cheap_Sale_ID4520.jpg"
+                    }
+                ],
+                "sizes": [
+                    {
+                        "sizeId": "40",
+                        "sizeDesc": "40"
+                    },
+                    {
+                        "sizeId": "41",
+                        "sizeDesc": "41"
+                    }
+                ]
+            }]
+        }
+
+## Single Item [/elmst/items/4]
++ Parameters
+    + id (string) ... ID of the item
+
+### Retrieve an Item [GET]
++ Request (application/json)
++ Response 200 (application/json)
+
+        {
+            "id": 4,
+            "name": "Nike 12",
+            "description": "Very comfortable shoes",
+            "exclVatPrice": 130,
+            "vat": 20,
+            "vatPrice": 150,
+            "colors": [{
+                "colorId": "1",
+                "colorDesc": "Red",
+                "pictures": [
+                ],
+                "sizes": [
+                    {
+                        "sizeId": "38",
+                        "sizeDesc": "38"
+                    },
+                    {
+                        "sizeId": "39",
+                        "sizeDesc": "39"
+                    },
+                    {
+                        "sizeId": "40",
+                        "sizeDesc": "40"
+                    },
+                    {
+                        "sizeId": "41",
+                        "sizeDesc": "41"
+                    }
+                ]
+            },
+            {
+                "colorId": "2",
+                "colorDesc": "Blue",
+                "pictures": [
+                ],
+                "sizes": [
+                    {
+                        "sizeId": "40",
+                        "sizeDesc": "40"
+                    },
+                    {
+                        "sizeId": "41",
+                        "sizeDesc": "41"
+                    }
+                ]
+            }]
+        }
+
+## Single Item [/elmst/items/5]
++ Parameters
+    + id (string) ... ID of the item
+
+### Retrieve an Item [GET]
++ Request (application/json)
++ Response 200 (application/json)
+
+        {
+            "id": 5,
+            "name": "Converse 12",
+            "description": "Very comfortable shoes",
+            "exclVatPrice": 100,
+            "vat": 10,
+            "vatPrice": 110,
+            "colors": [{
+                "colorId": "1",
+                "colorDesc": "White",
+                "pictures": [
+                ],
+                "sizes": [
+                    {
+                        "sizeId": "38",
+                        "sizeDesc": "38"
+                    },
+                    {
+                        "sizeId": "39",
+                        "sizeDesc": "39"
+                    },
+                    {
+                        "sizeId": "40",
+                        "sizeDesc": "40"
+                    },
+                    {
+                        "sizeId": "41",
+                        "sizeDesc": "41"
+                    }
+                ]
+            },
+            {
+                "colorId": "2",
+                "colorDesc": "Blue",
+                "pictures": [
+                    {
+                    "picURL": "http://www.2015shoesonline.com/images/2015_New_Deals_Discounts/Nike_Casual_Shoes_Mens/Nike_Roshe_Mens_Running_Shoes/2013_Design_Nike_Mens_Roshe_Running_Shoes_Wool_Skin_Blue_Cheap_Sale_ID4520.jpg"
+                    }
+                ],
+                "sizes": [
+                    {
+                        "sizeId": "40",
+                        "sizeDesc": "40"
+                    },
+                    {
+                        "sizeId": "41",
+                        "sizeDesc": "41"
+                    }
+                ]
+            },
+            {
+                "colorId": "3",
+                "colorDesc": "Pink",
+                "pictures": [
+                    {
+                    "picURL": "http://images.champssports.com/pi/42249001/large/nike-air-extreme-volley-womens"
+                    }
+                ],
+                "sizes": [
+                    {
+                        "sizeId": "42",
+                        "sizeDesc": "42"
+                    },
+                    {
+                        "sizeId": "43",
+                        "sizeDesc": "43"
+                    }
+                ]
+            }]
+        }
+        
+# Group Basket
+## Basket Items Collection [/elmst/users/{id}/basket-items]
++ Parameters
+    + id (string) ... ID of the user
+
+### List Basket Items [GET]
++ Request (application/json)
++ Response 200 (application/json)
+
+        [{
+            "itemId": 10345, "quantity": 1
+        }, {
+            "itemId": 10120, "quantity": 2
+        }]
+
+### Add an item to basket [POST]
+
++ Request (application/json)
+
+        {
+            "country": "lb",
+            "itemId": 1,
+            "colorId": "black",
+            "size": "L"
+        }
+
++ Response 200 (application/json)
+        
+        {
+            "id": 9999
+        }
+
+## Basket Item [/elmst/users/:id/basket-items/:itemId]
++ Parameters
+    + id (string) ... ID of the user
+    + itemId (string) ... ID of the item
+
+### Change quantities of an item in the basket [PUT]
+
++ Request (application/json)
+
+        {
+            "itemId": 10345,
+            "quantity": 2
+        }
+
++ Response 200 (application/json)
+
+### Delete from basket [DELETE]
+
++ Request (application/json)
+
++ Response 200 (application/json)
+
+# Group Order
+## Order [/elmst/validate-order]
+
+### Validate order [POST]
++ Request (application/json)
+
+        {
+            "countryId": "lb",
+            "basket": [{
+                "itemId": 1,
+                "colorId": "black",
+                "sizeId": "38",
+                "exclVatPrice": 100,
+                "vat": 10,
+                "inclVatPrice": 110,
+                "quantity": 2
+            },
+            {
+                "itemId": 2,
+                "colorId": "white",
+                "sizeId": "38",
+                "exclVatPrice": 200,
+                "vat": 20,
+                "inclVatPrice": 220,
+                "quantity": 1
+            }]
+        }
++ Response 200 (application/json)
+
+        {
+            "valid": [{
+                "itemId": 1,
+                "colorId": "black",
+                "sizeId": "38"
+            }],
+            "invalid": [{
+                "itemId": 2,
+                "colorId": "white",
+                "sizeId": "38",
+                "error": "Not available"
+            }]
+        }
+
+# Group Delivery
+## Delivery [/elmst/delivery-fee]
+### Get Delivery Fee [POST]
+
++ Request (application/json)
+
+        {
+            "countryId": "lb",
+            "deliveryAddress":  {
+                "name": "Dbayeh",
+                "full": "ABC Street, Karam Building, 7th floor"
+            },
+            "basket": [{
+                "itemId": 1,
+                "colorId": "black",
+                "sizeId": "38",
+                "exclVatPrice": 100,
+                "vat": 10,
+                "inclVatPrice": 110,
+                "quantity": 2
+            },
+            {
+                "itemId": 2,
+                "colorId": "white",
+                "sizeId": "38",
+                "exclVatPrice": 200,
+                "vat": 20,
+                "inclVatPrice": 220,
+                "quantity": 1
+            }]
+        }
++ Response 200 (application/json)
+
+        {
+            "deliveryFee": 5
+        }
